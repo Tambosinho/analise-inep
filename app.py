@@ -94,37 +94,6 @@ COLOR_MOD = {
 
 
 # -----------------------------
-# SIMPLE AUTH (password)
-# -----------------------------
-def check_password() -> bool:
-    """Ask for a password once per session. Source from st.secrets or APP_PASSWORD env."""
-    if "password_ok" in st.session_state:
-        return st.session_state.password_ok
-
-    real = st.secrets.get("password") or os.getenv("APP_PASSWORD")
-    if not real:
-        # No password provided — allow access (useful in local dev)
-        st.warning("⚠️ No password found in `st.secrets['password']` or env `APP_PASSWORD`. App is open.")
-        st.session_state.password_ok = True
-        return True
-
-    with st.form("auth"):
-        st.markdown("### 🔒 Enter password")
-        pw = st.text_input("Password", type="password")
-        ok = st.form_submit_button("Enter")
-    if ok:
-        if pw == real:
-            st.session_state.password_ok = True
-            return True
-        st.error("Wrong password.")
-    return False
-
-
-if not check_password():
-    st.stop()
-
-
-# -----------------------------
 # HELPERS
 # -----------------------------
 def format_short(n):
