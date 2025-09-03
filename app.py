@@ -1,6 +1,56 @@
 # app.py — INEP Administração (Bacharelado) • pronto para deploy com senha
 # Leitura direta de adm_bacharelado.csv (pré-filtrado)
 
+
+def require_password() -> bool:
+    """Simple one-password gate.
+    - Reads the password from st.secrets['password'] or env APP_PASSWORD.
+    - Shows a small login form until the user authenticates.
+    - After success, the form disappears (using rerun).
+    """
+    # Already authed this session?
+    if st.session_state.get("auth_ok", False):
+        return True
+
+    real = st.secrets.get("password") or os.getenv("APP_PASSWORD")
+
+    # Enforce having a password configured (safer default)
+    if not real:
+        st.error("Password not configured. Set st.secrets['password'] or env APP_PASSWORD.")
+        st.stop()
+
+    # Render login form inside a placeholder so we can remove it
+    gate = st.empty()
+    with gate.form("login_form", clear_on_submit=True):
+        st.markdown("### 🔒 Enter password")
+        pwd = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Enter")
+
+    if submitted:
+        if pwd == real:
+            # mark session authed and hide the form
+            st.session_state["auth_ok"] = True
+            gate.empty()
+            st.rerun()  # reload app without the login UI
+        else:
+            st.error("Invalid password.")
+            # keep the form on screen this run
+            return False
+
+    # Not submitted yet → block the rest of the app
+    st.stop()
+
+# Call the gate before any other app content:
+require_password()
+
+# (Optional) Logout button for convenience
+with st.sidebar:
+    if st.session_state.get("auth_ok"):
+        if st.button("Logout"):
+            st.session_state.pop("auth_ok", None)
+            st.rerun()
+
+
 import os
 import unicodedata
 
