@@ -272,7 +272,7 @@ def line_with_labels(df, x, y, series, color_map, title, subtitle, yaxis_title, 
             text=f"<b style='color:{TITLE_COLOR}'>{title}</b>"
                  f"<br><span style='color:{SUBTITLE_COLOR}; font-weight: normal;'>{subtitle}</span>",
             font=dict(family=FONT_FAMILY, size=20),
-            x=0, xanchor="left", y=0.98,
+            x=0, xanchor="left", y=0.90,
         ),
         legend=dict(orientation="h", yanchor="top", y=-0.18, xanchor="left", x=0),
         margin=dict(l=10, r=10, t=95, b=70),
@@ -328,7 +328,7 @@ def stacked_modalidade(df_mod, metric_col, title, subtitle, pct=False):
             text=f"<b style='color:{TITLE_COLOR}'>{title}</b>"
                  f"<br><span style='color:{SUBTITLE_COLOR}; font-weight: normal;'>{subtitle}</span>",
             font=dict(family=FONT_FAMILY, size=20),
-            x=0, xanchor="left", y=0.99
+            x=0, xanchor="left", y=0.90
         ),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
         paper_bgcolor="white", plot_bgcolor="white",
