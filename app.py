@@ -61,12 +61,6 @@ with st.sidebar:
             st.session_state.pop("auth_ok", None)
             st.rerun()
 
-
-# -----------------------------
-# PAGE / THEME
-# -----------------------------
-st.set_page_config(page_title="INEP • Administração (Bacharelado)", layout="wide")
-
 PALETTE = {
     "azuis": ["#002D4D", "#003A79", "#0C63AA", "#008BC9", "#73BFE8"],
     "cinzas": ["#88868B", "#AFAEB4", "#D7D9DD"],
