@@ -1,6 +1,13 @@
 # app.py — INEP Administração (Bacharelado) • pronto para deploy com senha
 # Leitura direta de adm_bacharelado.csv (pré-filtrado)
 
+import os
+import unicodedata
+
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
 
 def require_password() -> bool:
     """Simple one-password gate.
@@ -49,15 +56,6 @@ with st.sidebar:
         if st.button("Logout"):
             st.session_state.pop("auth_ok", None)
             st.rerun()
-
-
-import os
-import unicodedata
-
-import numpy as np
-import pandas as pd
-import plotly.graph_objects as go
-import streamlit as st
 
 
 # -----------------------------
