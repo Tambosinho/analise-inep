@@ -9,6 +9,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+# ── 2) MUST be the first Streamlit command ────────────────────────────────────
+st.set_page_config(page_title="INEP • Administração (Bacharelado)", page_icon="📊", layout="wide")
+
+
 def require_password() -> bool:
     """Simple one-password gate.
     - Reads the password from st.secrets['password'] or env APP_PASSWORD.
