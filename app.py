@@ -51,14 +51,6 @@ with st.sidebar:
         st.session_state.pop("auth_ok", None)
         st.rerun()
 
-
-# (Optional) Logout button for convenience
-with st.sidebar:
-    if st.session_state.get("auth_ok"):
-        if st.button("Logout"):
-            st.session_state.pop("auth_ok", None)
-            st.rerun()
-
 PALETTE = {
     "azuis": ["#002D4D", "#003A79", "#0C63AA", "#008BC9", "#73BFE8"],
     "cinzas": ["#88868B", "#AFAEB4", "#D7D9DD"],
