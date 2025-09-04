@@ -13,46 +13,44 @@ import streamlit as st
 st.set_page_config(page_title="INEP • Administração (Bacharelado)", page_icon="📊", layout="wide")
 
 
-def require_password() -> bool:
-    """Simple one-password gate.
-    - Reads the password from st.secrets['password'] or env APP_PASSWORD.
-    - Shows a small login form until the user authenticates.
-    - After success, the form disappears (using rerun).
-    """
-    # Already authed this session?
-    if st.session_state.get("auth_ok", False):
-        return True
-
+def require_password() -> None:
     real = st.secrets.get("password") or os.getenv("APP_PASSWORD")
 
-    # Enforce having a password configured (safer default)
+    # If no password is configured, silently allow access
     if not real:
-        st.error("Password not configured. Set st.secrets['password'] or env APP_PASSWORD.")
-        st.stop()
+        st.session_state["auth_ok"] = True
+        return
 
-    # Render login form inside a placeholder so we can remove it
+    # Already authenticated this session
+    if st.session_state.get("auth_ok"):
+        return
+
+    # Render login UI in a placeholder so we can remove it after success
     gate = st.empty()
     with gate.form("login_form", clear_on_submit=True):
-        st.markdown("### 🔒 Enter password")
+        st.subheader("🔒 Enter password")
         pwd = st.text_input("Password", type="password")
-        submitted = st.form_submit_button("Enter")
+        ok = st.form_submit_button("Enter")
 
-    if submitted:
+    if ok:
         if pwd == real:
-            # mark session authed and hide the form
             st.session_state["auth_ok"] = True
             gate.empty()
-            st.rerun()  # reload app without the login UI
+            st.rerun()                  # refresh and render the app
         else:
             st.error("Invalid password.")
-            # keep the form on screen this run
-            return False
 
-    # Not submitted yet → block the rest of the app
+    # ⛔ ALWAYS stop here when not authenticated, so the rest of the page won't load
     st.stop()
 
-# Call the gate before any other app content:
 require_password()
+
+# Optional: logout button anywhere (e.g., sidebar)
+with st.sidebar:
+    if st.session_state.get("auth_ok") and st.button("Logout"):
+        st.session_state.pop("auth_ok", None)
+        st.rerun()
+
 
 # (Optional) Logout button for convenience
 with st.sidebar:
