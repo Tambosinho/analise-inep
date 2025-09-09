@@ -290,12 +290,14 @@ def fig_marketshare_100_plotly(df: pd.DataFrame, uf: str, metric: str) -> go.Fig
                 y=pivot_pct[ies].values,
                 name=str(ies),
                 marker=dict(color=cmap.get(ies, GRAYS["mid"]), line=dict(width=0)),
+                # enviamos ABS e % como customdata para usar no hover
                 customdata=np.stack([pivot_abs[ies].values, pivot_pct[ies].values], axis=-1),
                 hovertemplate=(
                     f"IES: {ies}<br>"
                     "Ano: %{x}<br>"
-                    f"{title_map[metric]}: %{customdata[0]:,.0f}<br>"
-                    "Market share: %{customdata[1]:.1f}%<extra></extra>"
+                    # 👇 repare nas chaves duplas para escapar no f-string
+                    f"{title_map[metric]}: %{{customdata[0]:,.0f}}<br>"
+                    "Market share: %{{customdata[1]:.1f}}%<extra></extra>"
                 ),
             )
         )
