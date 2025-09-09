@@ -231,6 +231,100 @@ def fig_competicao_plotly(df: pd.DataFrame, uf: str, metric: str) -> go.Figure:
                      linecolor=GRAYS["mid"], tickformat=",.0f", tickfont=dict(size=AXIS_TICK_SIZE))
     return fig
 
+def fig_marketshare_100_plotly(df: pd.DataFrame, uf: str, metric: str) -> go.Figure:
+    """
+    Market share das IES por ano (100% stacked), incluindo EBAPE em todos os UFs
+    e EAESP apenas em SP, mantendo as mesmas cores e ordem visual.
+    """
+    title_map  = {"Ingresso":"INGRESSO", "Matriculas":"MATRICULADOS", "Concluintes":"CONCLUINTES"}
+    assert metric in title_map
+
+    # Subconjunto por UF + EBAPE (sempre) + EAESP (só em SP)
+    df_uf = df[df["UF"].str.fullmatch(uf, na=False)].copy()
+    frames = [df_uf, df[df["IES_norm"].apply(is_ebape)]]
+    if uf == "SP":
+        frames.append(df[df["IES_norm"].apply(is_eaesp)])
+    df_plot = (pd.concat(frames, ignore_index=True)
+                 .drop_duplicates(subset=["UF","IES","Ano","Ingresso","Matriculas","Concluintes"]))
+
+    anos = sorted(df_plot["Ano"].dropna().unique())
+    if not anos:
+        return go.Figure()
+
+    # Paleta igual à do gráfico de linha
+    unique_ies = sorted(df_plot["IES"].unique())
+    ebapes = [i for i in unique_ies if is_ebape(_strip_accents(i).lower())]
+    eaesps = [i for i in unique_ies if (uf == "SP" and is_eaesp(_strip_accents(i).lower()))] if uf == "SP" else []
+    others = [i for i in unique_ies if i not in ebapes + eaesps]
+
+    cmap = {ies: col for ies, col in zip(others, palette_distinct_others(len(others)))}
+    for nm in ebapes: cmap[nm] = BLUES["sky"]
+    for nm in eaesps: cmap[nm] = BLUES["navy"]
+
+    order = others + eaesps + ebapes  # EBAPE por último → faixa superior
+
+    # Pivot para shares (%)
+    pivot_abs = (df_plot[["Ano", "IES", metric]]
+                 .dropna()
+                 .groupby(["Ano", "IES"], as_index=False)[metric]
+                 .sum())
+    pivot_abs = pivot_abs.pivot(index="Ano", columns="IES", values=metric).reindex(index=anos).fillna(0)
+
+    # garantir todas as IES nas colunas, na ordem desejada
+    for ies in order:
+        if ies not in pivot_abs.columns:
+            pivot_abs[ies] = 0
+    pivot_abs = pivot_abs[order]
+
+    totals = pivot_abs.sum(axis=1).replace(0, np.nan)
+    pivot_pct = (pivot_abs.div(totals, axis=0) * 100).fillna(0)
+
+    # --- Figura
+    fig = go.Figure()
+
+    # Traços em ordem (others → EAESP → EBAPE) para formar o empilhado 100%
+    for ies in order:
+        fig.add_trace(
+            go.Bar(
+                x=pivot_pct.index,
+                y=pivot_pct[ies].values,
+                name=str(ies),
+                marker=dict(color=cmap.get(ies, GRAYS["mid"]), line=dict(width=0)),
+                customdata=np.stack([pivot_abs[ies].values, pivot_pct[ies].values], axis=-1),
+                hovertemplate=(
+                    f"IES: {ies}<br>"
+                    "Ano: %{x}<br>"
+                    f"{title_map[metric]}: %{customdata[0]:,.0f}<br>"
+                    "Market share: %{customdata[1]:.1f}%<extra></extra>"
+                ),
+            )
+        )
+
+    # Layout — alinhado ao design
+    title_html = (
+        f"<b style='color:{BLUES['navy']}'>COMPETIÇÃO ENTRE ESCOLAS - {uf}</b>"
+        f"<br><span style='color:{BLUES['medium']}; font-weight: normal;'>{title_map[metric]} — Market Share 100%</span>"
+    )
+    fig.update_layout(
+        barmode="stack",
+        bargap=0.0,          # colunas encostadas
+        bargroupgap=0.0,
+        title=dict(text=title_html, font=dict(family=FONT_FAMILY, size=TITLE_SIZE), x=0, xanchor="left", y=TITLE_Y),
+        legend=dict(orientation="h", yanchor="top", y=LEGEND_Y, xanchor="left", x=0,
+                    font=dict(family=FONT_FAMILY, size=12)),
+        margin=dict(l=10, r=10, t=90, b=80),
+        paper_bgcolor="white", plot_bgcolor="white",
+        font=dict(family=FONT_FAMILY, color=GRAYS["mid"]),
+    )
+    # Eixos no padrão: grade horizontal apenas, 0–100%
+    fig.update_xaxes(showgrid=False, zeroline=False, linecolor=GRAYS["mid"], tickmode="linear")
+    fig.update_yaxes(
+        showgrid=True, gridcolor=GRAYS["light"], zeroline=False, linecolor=GRAYS["mid"],
+        range=[0, 100], tickmode="linear", dtick=20, ticksuffix="%", title="Market share (%)"
+    )
+    return fig
+
+
 # ===========================
 # UI
 # ===========================
@@ -239,5 +333,11 @@ tabs = st.tabs(["SP", "RJ", "MG"])
 for tab, UF in zip(tabs, ["SP", "RJ", "MG"]):
     with tab:
         for MET in ["Ingresso", "Matriculas", "Concluintes"]:
-            fig = fig_competicao_plotly(df, UF, MET)
-            st.plotly_chart(fig, use_container_width=True)
+            # 1) Gráfico de linha (igual ao atual)
+            fig_line = fig_competicao_plotly(df, UF, MET)
+            st.plotly_chart(fig_line, use_container_width=True)
+
+            # 2) Stacked 100% (market share) — colado abaixo
+            fig_ms = fig_marketshare_100_plotly(df, UF, MET)
+            st.plotly_chart(fig_ms, use_container_width=True)
+
