@@ -1,0 +1,20 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Dados INEP (mantém só scripts e amostras leves)
+dados/extracted/
+dados/*.zip
+adm_bacharelado.csv
+
+# (opcional) qualquer CSV gigante gerado em pipeline
+# dados/**/*.CSV.venv/
+dados/extracted/
+dados/*.zip
+adm_bacharelado.csv
+.ipynb_checkpoints/
+__pycache__/
