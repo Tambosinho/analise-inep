@@ -1,0 +1,66 @@
+Ano,Instituições,Cursos,Vagas,Ingressantes,Matrículas,Concluintes,Modalidade,Escopo,Modalidade
+2010,580,1890,251706,127048,241195,58115,Presencial,Brasil,Tecnológico
+2011,644,2078,274449,145112,272684,61373,Presencial,Brasil,Tecnológico
+2012,689,2283,298174,172898,294605,74220,Presencial,Brasil,Tecnológico
+2013,711,2407,366076,159392,300171,76150,Presencial,Brasil,Tecnológico
+2014,741,2506,399736,154685,288057,70939,Presencial,Brasil,Tecnológico
+2015,784,2591,478831,126643,270805,75408,Presencial,Brasil,Tecnológico
+2016,833,2689,503493,118794,231384,68321,Presencial,Brasil,Tecnológico
+2017,866,2705,468477,117729,214655,55884,Presencial,Brasil,Tecnológico
+2018,936,2845,487368,115352,207240,53747,Presencial,Brasil,Tecnológico
+2019,929,2789,431565,112404,197039,50122,Presencial,Brasil,Tecnológico
+2020,873,2736,438149,84277,158396,50024,Presencial,Brasil,Tecnológico
+2021,856,2541,410518,50355,115549,37513,Presencial,Brasil,Tecnológico
+2022,829,2435,338195,56432,98191,24680,Presencial,Brasil,Tecnológico
+2023,763,2317,294429,55715,99879,23521,Presencial,Brasil,Tecnológico
+2024,708,2085,249350,50014,98564,26213,Presencial,Brasil,Tecnológico
+2010,44,152,476709,85418,173315,38260,A distância,Brasil,Tecnológico
+2011,50,200,390920,105390,197996,38178,A distância,Brasil,Tecnológico
+2012,51,243,443429,146629,231904,41774,A distância,Brasil,Tecnológico
+2013,64,295,582204,138879,250111,45168,A distância,Brasil,Tecnológico
+2014,71,332,861253,183274,282879,56290,A distância,Brasil,Tecnológico
+2015,80,365,735214,165452,280076,65488,A distância,Brasil,Tecnológico
+2016,94,421,1084335,190101,276821,59590,A distância,Brasil,Tecnológico
+2017,126,560,1256996,247260,331184,59584,A distância,Brasil,Tecnológico
+2018,193,899,1808340,308600,396772,72635,A distância,Brasil,Tecnológico
+2019,243,1273,2444719,366487,478653,85173,A distância,Brasil,Tecnológico
+2020,283,1703,3271999,468172,629793,118277,A distância,Brasil,Tecnológico
+2021,332,2041,3890961,577387,741147,132823,A distância,Brasil,Tecnológico
+2022,392,2450,3925034,624011,805741,130883,A distância,Brasil,Tecnológico
+2023,450,2723,4460806,653591,885972,173023,A distância,Brasil,Tecnológico
+2024,491,2889,4503891,655896,905436,164840,A distância,Brasil,Tecnológico
+2020,1,5,7750,531,388,0,A distância,IDT-FGV,Tecnológico
+2021,1,5,26500,987,818,0,A distância,IDT-FGV,Tecnológico
+2022,1,7,39750,906,1146,179,A distância,IDT-FGV,Tecnológico
+2023,1,7,39754,1020,1375,310,A distância,IDT-FGV,Tecnológico
+2024,1,7,42150,1360,1702,357,A distância,IDT-FGV,Tecnológico
+2010,12,69,,4148,8675,1824,Presencial,Rio de Janeiro,Tecnológico
+2011,13,72,,4632,9812,2404,Presencial,Rio de Janeiro,Tecnológico
+2012,14,84,,6144,10194,1746,Presencial,Rio de Janeiro,Tecnológico
+2013,12,82,,5537,10301,1885,Presencial,Rio de Janeiro,Tecnológico
+2014,12,87,,6488,10564,1996,Presencial,Rio de Janeiro,Tecnológico
+2015,15,92,,5969,11364,2320,Presencial,Rio de Janeiro,Tecnológico
+2016,17,83,,4903,10642,2796,Presencial,Rio de Janeiro,Tecnológico
+2017,20,91,,5042,9854,2078,Presencial,Rio de Janeiro,Tecnológico
+2018,20,95,,4035,9123,1960,Presencial,Rio de Janeiro,Tecnológico
+2019,21,101,,3542,8194,2248,Presencial,Rio de Janeiro,Tecnológico
+2020,23,87,,2955,6316,1755,Presencial,Rio de Janeiro,Tecnológico
+2021,22,77,,1232,4291,1340,Presencial,Rio de Janeiro,Tecnológico
+2022,19,82,,1552,3537,917,Presencial,Rio de Janeiro,Tecnológico
+2023,17,79,,1529,2910,731,Presencial,Rio de Janeiro,Tecnológico
+2024,12,57,,1425,2530,861,Presencial,Rio de Janeiro,Tecnológico
+2010,10,32,,2644,3678,234,A distância,Rio de Janeiro,Tecnológico
+2011,11,50,,2606,4845,477,A distância,Rio de Janeiro,Tecnológico
+2012,12,65,,4347,6438,904,A distância,Rio de Janeiro,Tecnológico
+2013,15,76,,4989,7132,758,A distância,Rio de Janeiro,Tecnológico
+2014,17,97,,7250,8858,1089,A distância,Rio de Janeiro,Tecnológico
+2015,17,109,,8594,10424,1308,A distância,Rio de Janeiro,Tecnológico
+2016,23,130,,9263,11624,1797,A distância,Rio de Janeiro,Tecnológico
+2017,29,169,,9950,13678,2427,A distância,Rio de Janeiro,Tecnológico
+2018,46,279,,12586,17512,3716,A distância,Rio de Janeiro,Tecnológico
+2019,65,404,,13419,20071,4529,A distância,Rio de Janeiro,Tecnológico
+2020,76,492,,21719,30599,6472,A distância,Rio de Janeiro,Tecnológico
+2021,82,584,,25581,35208,6554,A distância,Rio de Janeiro,Tecnológico
+2022,86,681,,27139,39736,7826,A distância,Rio de Janeiro,Tecnológico
+2023,92,776,,31525,45592,10251,A distância,Rio de Janeiro,Tecnológico
+2024,90,759,,32380,45140,8564,A distância,Rio de Janeiro,Tecnológico
