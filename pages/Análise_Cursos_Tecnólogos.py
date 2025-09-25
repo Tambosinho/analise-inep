@@ -1,8 +1,8 @@
-# app_tecnologo_streamlit.py — INEP Tecnológico (Brasil/RJ/IDT‑FGV)
+# app_tecnologo_streamlit.py — INEP Tecnológico (Brasil/RJ/IDT-FGV)
 # Streamlit app that reads "dados-tecnologo-brasil-rio-idtfgv.csv"
 # Tabs:
-#   (1) Rio de Janeiro: stacked bar (Presencial x EAD) + line (IDT‑FGV vs RJ)
-#   (2) Brasil: stacked bar (Presencial x EAD) + line (Brasil vs RJ)
+#   (1) Rio de Janeiro: stacked bar (Presencial x EAD) + line (IDT-FGV vs RJ) + 100% stacked (market share IDT-FGV)
+#   (2) Brasil: stacked bar (Presencial x EAD) + line (Brasil vs RJ) + Treemap IES (UF → IES) com toggle e ano
 #
 # To run locally:
 #   pip install streamlit plotly pandas numpy
@@ -17,7 +17,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 # ── Streamlit page config ─────────────────────────────────────────────────────
-st.set_page_config(page_title="INEP • Tecnológico (Brasil/RJ/IDT‑FGV)",
+st.set_page_config(page_title="INEP • Tecnológico (Brasil/RJ/IDT-FGV)",
                    page_icon="📊", layout="wide")
 
 # ── STYLE (similar to the reference) ──────────────────────────────────────────
@@ -43,9 +43,8 @@ COLOR_MOD = {
 COLOR_SERIES = {
     "Rio de Janeiro (Total)": PALETTE["azuis"][1],
     "Brasil (Total)": PALETTE["azuis"][0],
-    "IDT‑FGV": PALETTE["azuis"][3],
+    "IDT-FGV": PALETTE["azuis"][3],
 }
-
 
 # ── HELPERS ───────────────────────────────────────────────────────────────────
 def format_short(n):
@@ -66,7 +65,6 @@ def _norm(s: str) -> str:
     s = unicodedata.normalize("NFKD", s)
     return "".join(c for c in s if not unicodedata.combining(c))
 
-
 # ── DATA ──────────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data(path="pages/dados-tecnologo-brasil-rio-idtfgv.csv") -> pd.DataFrame:
@@ -76,7 +74,6 @@ def load_data(path="pages/dados-tecnologo-brasil-rio-idtfgv.csv") -> pd.DataFram
 
     df = pd.read_csv(path, sep=",", encoding="utf-8", low_memory=False)
 
-    # Padroniza colunas esperadas
     # Colunas do arquivo: Ano, Instituições, Cursos, Vagas,
     # Ingressantes, Matrículas, Concluintes, Modalidade, Escopo, Modalidade.1
     # Criar MOD2 que mapeia 'A distância' -> 'EAD'
@@ -94,6 +91,24 @@ def load_data(path="pages/dados-tecnologo-brasil-rio-idtfgv.csv") -> pd.DataFram
     df["Ano"] = df["Ano"].astype(int)
     return df
 
+# ── EXTRA DATA (IES aggregated for Treemap) ───────────────────────────────────
+@st.cache_data
+def load_ies_agg(path="pages/dados-agrupados-tecnologos-por-faculdade-ano.csv") -> pd.DataFrame:
+    """
+    Expected columns:
+      - NU_ANO_CENSO (int)
+      - SG_UF_IES (str), CO_IES (id), NO_IES (str)
+      - QT_MAT, QT_ING, QT_CONC (numeric)
+    """
+    if not os.path.exists(path):
+        return pd.DataFrame()
+
+    ies = pd.read_csv(path, sep=",", encoding="utf-8", low_memory=False)
+    ies["NU_ANO_CENSO"] = pd.to_numeric(ies.get("NU_ANO_CENSO"), errors="coerce").astype("Int64")
+    for c in ["QT_MAT", "QT_ING", "QT_CONC"]:
+        if c in ies.columns:
+            ies[c] = pd.to_numeric(ies[c], errors="coerce")
+    return ies
 
 master = load_data()
 if master.empty:
@@ -106,7 +121,7 @@ st.markdown(
     f"<h2 style='color:{TITLE_COLOR};font-family:{FONT_FAMILY};font-weight:700;margin-bottom:0'>"
     f"Ensino Tecnológico — INEP {yr_min}–{yr_max}</h2>"
     f"<p style='color:{SUBTITLE_COLOR};font-family:{FONT_FAMILY};margin-top:2px'>"
-    f"Comparativos por Modalidade (Presencial × EAD) • Séries: Rio de Janeiro, Brasil e IDT‑FGV • "
+    f"Comparativos por Modalidade (Presencial × EAD) • Séries: Rio de Janeiro, Brasil e IDT-FGV • "
     f"Métricas: Ingressantes, Matrículas, Concluintes</p>",
     unsafe_allow_html=True,
 )
@@ -123,7 +138,6 @@ metric_map = {"Matrículas": "Matrículas", "Concluintes": "Concluintes", "Ingre
 metric_col = metric_map[metrica]
 m = master[(master["Ano"] >= yr0) & (master["Ano"] <= yr1)].copy()
 
-
 # ── COMPONENTS ────────────────────────────────────────────────────────────────
 def stacked_by_scope(df, scope_label, title_suffix):
     df_sc = (
@@ -135,7 +149,7 @@ def stacked_by_scope(df, scope_label, title_suffix):
     for col in ["Presencial", "EAD"]:
         if col not in pivot.columns:
             pivot[col] = 0
-    pivot = pivot[["Presencial", "EAD"]]
+    pivot = pivot["Presencial"].to_frame().join(pivot["EAD"].to_frame(), how="outer").fillna(0)
 
     fig = go.Figure()
     for mod in ["Presencial", "EAD"]:
@@ -171,7 +185,6 @@ def stacked_by_scope(df, scope_label, title_suffix):
 
 
 def line_two_series(df, label_a, label_b, title_suffix):
-    # Totais por ano para dois escopos
     a = (
         df.loc[df["Escopo"] == label_a, ["Ano", metric_col]]
         .groupby("Ano", as_index=False)
@@ -226,7 +239,6 @@ def line_two_series(df, label_a, label_b, title_suffix):
                      linecolor=AXIS_COLOR, title=metrica, tickformat=",.0f", rangemode="tozero")
     return fig
 
-
 # ── TABS ──────────────────────────────────────────────────────────────────────
 tab_rj, tab_br = st.tabs(["🏷️ Rio de Janeiro", "🇧🇷 Brasil"])
 
@@ -236,7 +248,6 @@ with tab_rj:
 
     # Linha: IDT‑FGV vs RJ
     st.markdown("### Séries temporais — IDT‑FGV × Rio de Janeiro (total)")
-    # Monta linha manual (IDT‑FGV vs RJ) pois não é o mesmo helper de dois 'Totals'
     series = []
     rj_total = (
         m.loc[m["Escopo"] == "Rio de Janeiro", ["Ano", metric_col]]
@@ -253,7 +264,7 @@ with tab_rj:
         .sum(min_count=1)
         .rename(columns={metric_col: "valor"})
     )
-    idt["serie"] = "IDT‑FGV"
+    idt["serie"] = "IDT-FGV"
     series.append(idt)
     ts = pd.concat(series, ignore_index=True)
 
@@ -293,6 +304,70 @@ with tab_rj:
                              linecolor=AXIS_COLOR, title=metrica, tickformat=",.0f", rangemode="tozero")
     st.plotly_chart(fig_line_rj, use_container_width=True)
 
+    # 100% stacked bar — Market share da IDT‑FGV no RJ
+    st.markdown("### Market share — IDT‑FGV no RJ (100%)")
+    rj_tot = (
+        m.loc[m["Escopo"] == "Rio de Janeiro", ["Ano", metric_col]]
+         .groupby("Ano", as_index=False).sum(min_count=1)
+         .rename(columns={metric_col: "RJ"})
+    )
+    idt_tot = (
+        m.loc[m["Escopo"] == "IDT-FGV", ["Ano", metric_col]]
+         .groupby("Ano", as_index=False).sum(min_count=1)
+         .rename(columns={metric_col: "IDT_FGV"})
+    )
+    share = rj_tot.merge(idt_tot, on="Ano", how="left").fillna({"IDT_FGV": 0})
+    share["OUTROS_RJ"] = (share["RJ"] - share["IDT_FGV"]).clip(lower=0)
+
+    denom = share["RJ"].replace(0, np.nan)
+    pct_idt = (share["IDT_FGV"] / denom * 100).fillna(0)
+    pct_out = (share["OUTROS_RJ"] / denom * 100).fillna(0)
+
+    fig_share = go.Figure()
+    fig_share.add_trace(
+        go.Bar(
+            x=share["Ano"],
+            y=pct_out,
+            name="Demais RJ",
+            marker_color=PALETTE["cinzas"][1],
+            text=[f"{v:.1f}%" if show_labels else "" for v in pct_out],
+            textposition="inside" if show_labels else "none",
+            hovertemplate="Ano: %{x}<br>Demais RJ: %{y:.1f}%<br>Absoluto: %{customdata:,}<extra></extra>",
+            customdata=share["OUTROS_RJ"],
+        )
+    )
+    fig_share.add_trace(
+        go.Bar(
+            x=share["Ano"],
+            y=pct_idt,
+            name="IDT‑FGV",
+            marker_color=PALETTE["azuis"][3],
+            text=[f"{v:.1f}%" if show_labels else "" for v in pct_idt],
+            textposition="inside" if show_labels else "none",
+            hovertemplate="Ano: %{x}<br>IDT‑FGV: %{y:.1f}%<br>Absoluto: %{customdata:,}<extra></extra>",
+            customdata=share["IDT_FGV"],
+        )
+    )
+    fig_share.update_layout(
+        barmode="stack",
+        title=dict(
+            text=f"<b style='color:{TITLE_COLOR}'>Participação (%) — IDT‑FGV no RJ</b>"
+                 f"<br><span style='color:{SUBTITLE_COLOR}; font-weight: normal;'>"
+                 f"Base: totais anuais do Rio de Janeiro • {yr0}–{yr1}</span>",
+            font=dict(family=FONT_FAMILY, size=20),
+            x=0, xanchor="left", y=0.90
+        ),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+        paper_bgcolor="white", plot_bgcolor="white",
+        font=dict(family=FONT_FAMILY, color=AXIS_COLOR),
+        margin=dict(l=10, r=10, t=110, b=60),
+    )
+    fig_share.update_xaxes(showgrid=False, zeroline=False, linecolor=AXIS_COLOR, tickmode="linear")
+    fig_share.update_yaxes(showgrid=True, gridcolor=GRID_COLOR, zeroline=False,
+                           linecolor=AXIS_COLOR, title="Participação (%)",
+                           tickformat=".0f", range=[0, 100])
+    st.plotly_chart(fig_share, use_container_width=True)
+
 
 with tab_br:
     st.markdown("### Brasil — Presencial × EAD (empilhado)")
@@ -304,5 +379,129 @@ with tab_br:
         use_container_width=True,
     )
 
+    # 100% stacked bar — Market share de RJ dentro do Brasil
+    st.markdown("### Market share — RJ no Brasil (100%)")
+    br_tot = (
+        m.loc[m["Escopo"] == "Brasil", ["Ano", metric_col]]
+         .groupby("Ano", as_index=False).sum(min_count=1)
+         .rename(columns={metric_col: "BR"})
+    )
+    rj_tot2 = (
+        m.loc[m["Escopo"] == "Rio de Janeiro", ["Ano", metric_col]]
+         .groupby("Ano", as_index=False).sum(min_count=1)
+         .rename(columns={metric_col: "RJ"})
+    )
+    share_br = br_tot.merge(rj_tot2, on="Ano", how="left").fillna({"RJ": 0})
+    share_br["DEMAIS_BR"] = (share_br["BR"] - share_br["RJ"]).clip(lower=0)
+
+    denom_br = share_br["BR"].replace(0, np.nan)
+    pct_rj = (share_br["RJ"] / denom_br * 100).fillna(0)
+    pct_out_br = (share_br["DEMAIS_BR"] / denom_br * 100).fillna(0)
+
+    fig_share_br = go.Figure()
+    fig_share_br.add_trace(
+        go.Bar(
+            x=share_br["Ano"],
+            y=pct_out_br,
+            name="Demais Brasil",
+            marker_color=PALETTE["cinzas"][1],
+            text=[f"{v:.1f}%" if show_labels else "" for v in pct_out_br],
+            textposition="inside" if show_labels else "none",
+            hovertemplate="Ano: %{x}<br>Demais Brasil: %{y:.1f}%<br>Absoluto: %{customdata:,}<extra></extra>",
+            customdata=share_br["DEMAIS_BR"],
+        )
+    )
+    fig_share_br.add_trace(
+        go.Bar(
+            x=share_br["Ano"],
+            y=pct_rj,
+            name="Rio de Janeiro",
+            marker_color=PALETTE["azuis"][1],
+            text=[f"{v:.1f}%" if show_labels else "" for v in pct_rj],
+            textposition="inside" if show_labels else "none",
+            hovertemplate="Ano: %{x}<br>Rio de Janeiro: %{y:.1f}%<br>Absoluto: %{customdata:,}<extra></extra>",
+            customdata=share_br["RJ"],
+        )
+    )
+    fig_share_br.update_layout(
+        barmode="stack",
+        title=dict(
+            text=f"<b style='color:{TITLE_COLOR}'>Participação (%) — RJ no Brasil</b>"
+                 f"<br><span style='color:{SUBTITLE_COLOR}; font-weight: normal;'>"
+                 f"Base: totais anuais do Brasil • {yr0}–{yr1}</span>",
+            font=dict(family=FONT_FAMILY, size=20),
+            x=0, xanchor="left", y=0.90
+        ),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+        paper_bgcolor="white", plot_bgcolor="white",
+        font=dict(family=FONT_FAMILY, color=AXIS_COLOR),
+        margin=dict(l=10, r=10, t=110, b=60),
+    )
+    fig_share_br.update_xaxes(showgrid=False, zeroline=False, linecolor=AXIS_COLOR, tickmode="linear")
+    fig_share_br.update_yaxes(showgrid=True, gridcolor=GRID_COLOR, zeroline=False,
+                              linecolor=AXIS_COLOR, title="Participação (%)",
+                              tickformat=".0f", range=[0, 100])
+    st.plotly_chart(fig_share_br, use_container_width=True)
+
+    # Treemap — IES (UF → IES) — com toggle de métrica e slider de ano (2022–2024)
+    st.markdown("### Treemap — IES (UF → IES)")
+    ies = load_ies_agg()
+    if ies.empty:
+        st.info("Arquivo 'dados-agrupados-tecnologos-por-faculdade-ano.csv' não encontrado — treemap indisponível.")
+    else:
+        import plotly.express as px
+        cols = st.columns([1, 1])
+        with cols[0]:
+            metric_choice = st.radio("Métrica do treemap", ["QT_MAT", "QT_ING", "QT_CONC"], index=0, horizontal=True)
+        with cols[1]:
+            available_years = sorted([int(y) for y in ies["NU_ANO_CENSO"].dropna().unique()])
+            if available_years:
+                min_avail = max(2020, min(available_years))
+                max_avail = min(2024, max(available_years))
+                if min_avail > max_avail:
+                    st.warning("Não há dados entre 2020 e 2024 para o treemap.")
+                    ano_treemap = None
+                else:
+                    ano_treemap = st.slider("Ano do treemap (2020–2024)", min_value=min_avail, max_value=max_avail, value=max_avail, step=1)
+            else:
+                st.warning("Arquivo de IES sem anos válidos para treemap.")
+                ano_treemap = None
+
+        if ano_treemap is not None:
+            num_cols = ["QT_MAT", "QT_ING", "QT_CONC"]
+            agg_yr = (
+                ies.loc[ies["NU_ANO_CENSO"] == int(ano_treemap)]
+                   .groupby(["SG_UF_IES", "CO_IES", "NO_IES"], as_index=False)[num_cols]
+                   .sum(min_count=1)
+            )
+
+            if agg_yr.empty:
+                st.warning(f"Sem dados para o ano {ano_treemap} no arquivo de IES.")
+            else:
+                values_col = metric_choice
+                color_col = metric_choice
+
+                fig_treemap = px.treemap(
+                    agg_yr,
+                    path=["SG_UF_IES", "NO_IES"],
+                    values=values_col,
+                    color=color_col,
+                    hover_data={
+                        "CO_IES": True,
+                        "QT_MAT": ":,",
+                        "QT_ING": ":,",
+                        "QT_CONC": ":,",
+                    },
+                    title=f"Treemap • IES (UF → IES) • Ano {ano_treemap} • Métrica: {metric_choice}",
+                    color_continuous_scale=[PALETTE["azuis"][3], PALETTE["azuis"][1], PALETTE["azuis"][0]],
+                )
+                fig_treemap.update_traces(textinfo="label+value")
+                fig_treemap.update_layout(
+                    paper_bgcolor="white",
+                    margin=dict(l=10, r=10, t=80, b=10),
+                    font=dict(family=FONT_FAMILY, color=AXIS_COLOR),
+                )
+                st.plotly_chart(fig_treemap, use_container_width=True)
+
 # ── FOOTER / NOTES ────────────────────────────────────────────────────────────
-st.caption("Fonte: INEP • Arquivo: dados-tecnologo-brasil-rio-idtfgv.csv • Modalidade 'A distância' exibida como 'EAD'.")
+st.caption("Fonte: INEP • Arquivo: dados-tecnologo-brasil-rio-idtfgv.csv; dados-agrupados-tecnologos-por-faculdade-ano.csv • Modalidade 'A distância' exibida como 'EAD'.")
