@@ -124,7 +124,7 @@ def palette_distinct_others(n: int) -> list:
 # ===========================
 # DATASET
 # ===========================
-CSV_PATH = "planilha-escolas-rj-sp-mg-from-powerbi.csv"  # hardcoded, igual ao seu código
+CSV_PATH = "planilha-escolas-rj-sp-mg-from-powerbi_atualizado_2024.csv"  # hardcoded, igual ao seu código
 
 @st.cache_data(show_spinner=False)
 def load_dataset() -> pd.DataFrame:
