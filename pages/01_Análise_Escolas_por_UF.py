@@ -326,6 +326,97 @@ def fig_marketshare_100_plotly(df: pd.DataFrame, uf: str, metric: str) -> go.Fig
     )
     return fig
 
+def _load_raw_with_tipo_sigla() -> pd.DataFrame:
+    df_raw = _read_csv_robusto(CSV_PATH)
+    df_raw = _mapear_colunas(df_raw)
+    df_raw = _coerce_numerics(df_raw)
+    return df_raw
+
+def fig_rj_tipo_ebape_plotly(metric: str) -> go.Figure:
+    title_map = {"Ingresso":"INGRESSO", "Matriculas":"MATRICULADOS", "Concluintes":"CONCLUINTES"}
+    assert metric in title_map
+
+    d = _load_raw_with_tipo_sigla()
+    d = d[d["UF"].str.fullmatch("RJ", na=False)].copy()
+    if d.empty or metric not in d.columns:
+        return go.Figure()
+
+    # Normalizações
+    d["Tipo_norm"] = d.get("Tipo", "").astype(str).map(lambda s: _strip_accents(s).lower())
+    if "Sigla" in d.columns:
+        ebape_mask = d["Sigla"].astype(str).str.upper().str.strip().eq("EBAPE")
+    else:
+        # fallback robusto caso 'Sigla' não exista
+        ebape_mask = d["IES_norm"].apply(is_ebape) if "IES_norm" in d.columns else d["IES"].astype(str).str.contains("EBAPE", case=False, na=False)
+
+    mask_pub  = (~ebape_mask) & d["Tipo_norm"].str.startswith("public")
+    mask_priv = (~ebape_mask) & d["Tipo_norm"].str.startswith("privad")
+
+    by_year = {
+        "Pública": d.loc[mask_pub,  ["Ano", metric]].dropna().groupby("Ano", as_index=False)[metric].sum(),
+        "Privada": d.loc[mask_priv, ["Ano", metric]].dropna().groupby("Ano", as_index=False)[metric].sum(),
+        "EBAPE":   d.loc[ebape_mask,["Ano", metric]].dropna().groupby("Ano", as_index=False)[metric].sum(),
+    }
+
+    anos = sorted(set().union(*[set(df["Ano"].unique()) for df in by_year.values() if not df.empty]))
+    if not anos: 
+        return go.Figure()
+
+    color_map = {"Pública": GRAYS["mid"], "Privada": BLUES["navy"], "EBAPE": BLUES["sky"]}
+    lw_map    = {"Pública": OTHERS_LW,   "Privada": OTHERS_LW,     "EBAPE": EBAPE_LW}
+
+    fig = go.Figure()
+
+    # Rótulos de texto (atrás das linhas)
+    for label in ["Pública", "Privada", "EBAPE"]:
+        dfy = by_year[label]
+        if dfy.empty: 
+            continue
+        xs, ys = dfy["Ano"].values, dfy[metric].values
+        fig.add_trace(
+            go.Scatter(
+                x=xs, y=ys, mode="text", name=label, showlegend=False,
+                text=[_fmt_int(v) for v in ys],
+                textposition="top center",
+                textfont=dict(family=FONT_FAMILY, size=LABEL_FS, color=color_map[label]),
+                cliponaxis=False, hoverinfo="skip"
+            )
+        )
+
+    # Linhas + marcadores
+    for label in ["Pública", "Privada", "EBAPE"]:
+        dfy = by_year[label]
+        if dfy.empty: 
+            continue
+        xs, ys = dfy["Ano"].values, dfy[metric].values
+        fig.add_trace(
+            go.Scatter(
+                x=xs, y=ys, mode="lines+markers", name=label,
+                line=dict(color=color_map[label], width=lw_map[label]),
+                marker=dict(size=MARKER_SIZE, color=color_map[label]),
+                cliponaxis=False,
+                hovertemplate=f"Categoria: {label}<br>Ano: %{{x}}<br>{title_map[metric]}: %{{y:,.0f}}<extra></extra>",
+            )
+        )
+
+    title_html = (
+        f"<b style='color:{BLUES['navy']}'>TIPO DE IES — RJ</b>"
+        f"<br><span style='color:{BLUES['medium']}; font-weight: normal;'>{title_map[metric]} — Públicas vs Privadas vs EBAPE</span>"
+    )
+    fig.update_layout(
+        title=dict(text=title_html, font=dict(family=FONT_FAMILY, size=TITLE_SIZE), x=0, xanchor="left", y=TITLE_Y),
+        legend=dict(orientation="h", yanchor="top", y=LEGEND_Y, xanchor="left", x=0,
+                    font=dict(family=FONT_FAMILY, size=12)),
+        margin=dict(l=10, r=10, t=90, b=80),
+        paper_bgcolor="white", plot_bgcolor="white",
+        font=dict(family=FONT_FAMILY, color=GRAYS["mid"]),
+    )
+    fig.update_xaxes(showgrid=False, zeroline=False, linecolor=GRAYS["mid"],
+                     tickmode="linear", tickfont=dict(size=AXIS_TICK_SIZE))
+    fig.update_yaxes(showgrid=True, gridcolor=GRAYS["light"], zeroline=False,
+                     linecolor=GRAYS["mid"], tickformat=",.0f", tickfont=dict(size=AXIS_TICK_SIZE))
+    return fig
+
 
 # ===========================
 # UI
@@ -342,4 +433,11 @@ for tab, UF in zip(tabs, ["SP", "RJ", "MG"]):
             # 2) Stacked 100% (market share) — colado abaixo
             fig_ms = fig_marketshare_100_plotly(df, UF, MET)
             st.plotly_chart(fig_ms, use_container_width=True)
+
+            if UF == "RJ":
+                fig_tipo = fig_rj_tipo_ebape_plotly(MET)
+                st.plotly_chart(fig_tipo, use_container_width=True)
+
+
+
 
