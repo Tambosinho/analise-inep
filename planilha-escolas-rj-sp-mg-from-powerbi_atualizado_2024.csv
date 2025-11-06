@@ -13,6 +13,7 @@ Ano,IES,Cursos,Ingresso,Matrículas,Concluintes,Sigla,Cidade,UF,Tipo
 2021,1,1,118,561,78,USP-RP,Ribeirão Preto,SP,Pública
 2022,1,1,107,559,103,USP-RP,Ribeirão Preto,SP,Pública
 2023,1,1,113,556,22,USP-RP,Ribeirão Preto,SP,Pública
+2024,1,1,101,629,94,USP-RP,Ribeirão Preto,SP,Pública
 2010,1,1,220,1105,237,USP-SP,São Paulo,SP,Pública
 2011,1,1,217,1071,176,USP-SP,São Paulo,SP,Pública
 2012,1,1,196,1036,180,USP-SP,São Paulo,SP,Pública
@@ -27,6 +28,7 @@ Ano,IES,Cursos,Ingresso,Matrículas,Concluintes,Sigla,Cidade,UF,Tipo
 2021,1,1,207,1020,199,USP-SP,São Paulo,SP,Pública
 2022,1,1,209,975,199,USP-SP,São Paulo,SP,Pública
 2023,1,1,209,976,158,USP-SP,São Paulo,SP,Pública
+2024,1,1,218,1000,154,USP-SP,São Paulo,SP,Pública
 2010,1,1,252,820,144,INSPER,São Paulo,SP,Privada
 2011,1,1,310,935,150,INSPER,São Paulo,SP,Privada
 2012,1,1,295,997,173,INSPER,São Paulo,SP,Privada
@@ -41,10 +43,12 @@ Ano,IES,Cursos,Ingresso,Matrículas,Concluintes,Sigla,Cidade,UF,Tipo
 2021,1,1,415,1401,251,INSPER,São Paulo,SP,Privada
 2022,1,1,404,1458,274,INSPER,São Paulo,SP,Privada
 2023,1,1,372,1459,280,INSPER,São Paulo,SP,Privada
+2024,1,1,332,1407,265,INSPER,São Paulo,SP,Privada
 2020,1,1,56,56,0,LINK,São Paulo,SP,Privada
 2021,1,1,194,236,0,LINK,São Paulo,SP,Privada
 2022,1,1,152,372,0,LINK,São Paulo,SP,Privada
 2023,1,1,195,580,0,LINK,São Paulo,SP,Privada
+2024,1,1,199,705,101,LINK,São Paulo,SP,Privada
 2010,1,2,505,1759,311,EAESP,São Paulo,SP,Privada
 2011,1,2,542,1881,292,EAESP,São Paulo,SP,Privada
 2012,1,2,403,1872,367,EAESP,São Paulo,SP,Privada
@@ -59,6 +63,7 @@ Ano,IES,Cursos,Ingresso,Matrículas,Concluintes,Sigla,Cidade,UF,Tipo
 2021,1,1,535,2303,435,EAESP,São Paulo,SP,Privada
 2022,1,1,468,2233,338,EAESP,São Paulo,SP,Privada
 2023,1,1,496,2325,431,EAESP,São Paulo,SP,Privada
+2024,1,1,564,2392,401,EAESP,São Paulo,SP,Privada
 2010,1,1,294,1223,66,FAAP,São Paulo,SP,Privada
 2011,1,1,288,1220,332,FAAP,São Paulo,SP,Privada
 2012,1,1,268,963,195,FAAP,São Paulo,SP,Privada
@@ -73,6 +78,7 @@ Ano,IES,Cursos,Ingresso,Matrículas,Concluintes,Sigla,Cidade,UF,Tipo
 2021,1,1,83,349,68,FAAP,São Paulo,SP,Privada
 2022,1,1,109,347,75,FAAP,São Paulo,SP,Privada
 2023,1,1,72,283,69,FAAP,São Paulo,SP,Privada
+2024,1,1,115,266,43,FAAP,São Paulo,SP,Privada
 2011,1,2,79,73,0,UNIFESP,Osasco,SP,Pública
 2012,1,2,75,156,0,UNIFESP,Osasco,SP,Pública
 2013,1,2,78,176,0,UNIFESP,Osasco,SP,Pública
@@ -86,6 +92,7 @@ Ano,IES,Cursos,Ingresso,Matrículas,Concluintes,Sigla,Cidade,UF,Tipo
 2021,1,1,78,368,43,UNIFESP,Osasco,SP,Pública
 2022,1,1,79,365,36,UNIFESP,Osasco,SP,Pública
 2023,1,1,83,373,54,UNIFESP,Osasco,SP,Pública
+2024,1,1,73,338,53,UNIFESP,Osasco,SP,Pública
 2010,1,1,330,1382,264,ESPM-SP,São Paulo,SP,Privada
 2011,1,1,339,1387,250,ESPM-SP,São Paulo,SP,Privada
 2012,1,1,312,1396,288,ESPM-SP,São Paulo,SP,Privada
@@ -100,12 +107,14 @@ Ano,IES,Cursos,Ingresso,Matrículas,Concluintes,Sigla,Cidade,UF,Tipo
 2021,1,1,237,892,183,ESPM-SP,São Paulo,SP,Privada
 2022,1,1,230,865,163,ESPM-SP,São Paulo,SP,Privada
 2023,1,1,191,826,133,ESPM-SP,São Paulo,SP,Privada
+2024,1,1,194,832,148,ESPM-SP,São Paulo,SP,Privada
 2018,1,1,79,79,0,IBMEC-SP,São Paulo,SP,Privada
 2019,1,1,168,232,0,IBMEC-SP,São Paulo,SP,Privada
 2020,1,1,197,397,0,IBMEC-SP,São Paulo,SP,Privada
 2021,1,1,240,537,28,IBMEC-SP,São Paulo,SP,Privada
 2022,1,1,335,694,53,IBMEC-SP,São Paulo,SP,Privada
 2023,1,2,512,937,120,IBMEC-SP,São Paulo,SP,Privada
+2024,1,2,505,1051,125,IBMEC-SP,São Paulo,SP,Privada
 2010,1,2,255,717,136,IBMEC-RJ,Rio de Janeiro,RJ,Privada
 2011,1,2,269,740,88,IBMEC-RJ,Rio de Janeiro,RJ,Privada
 2012,1,2,303,868,58,IBMEC-RJ,Rio de Janeiro,RJ,Privada
@@ -191,6 +200,7 @@ Ano,IES,Cursos,Ingresso,Matrículas,Concluintes,Sigla,Cidade,UF,Tipo
 2021,1,1,30,78,0,SKEMA,Belo Horizonte,MG,Privada
 2022,1,1,48,118,16,SKEMA,Belo Horizonte,MG,Privada
 2023,1,1,88,194,18,SKEMA,Belo Horizonte,MG,Privada
+2024,1,1,105,259,29,SKEMA,Belo Horizonte,MG,Privada
 2010,1,2,123,541,92,UFMG-BH,Belo Horizonte,MG,Pública
 2011,1,2,99,502,75,UFMG-BH,Belo Horizonte,MG,Pública
 2012,1,2,110,497,97,UFMG-BH,Belo Horizonte,MG,Pública
@@ -205,6 +215,7 @@ Ano,IES,Cursos,Ingresso,Matrículas,Concluintes,Sigla,Cidade,UF,Tipo
 2021,1,1,115,481,61,UFMG-BH,Belo Horizonte,MG,Pública
 2022,1,1,101,497,78,UFMG-BH,Belo Horizonte,MG,Pública
 2023,1,1,135,511,78,UFMG-BH,Belo Horizonte,MG,Pública
+2024,1,1,113,498,72,UFMG-BH,Belo Horizonte,MG,Pública
 2010,1,1,43,74,0,UFMG-MC,Belo Horizonte,MG,Pública
 2011,1,1,41,110,0,UFMG-MC,Belo Horizonte,MG,Pública
 2012,1,1,45,142,0,UFMG-MC,Belo Horizonte,MG,Pública
@@ -219,6 +230,7 @@ Ano,IES,Cursos,Ingresso,Matrículas,Concluintes,Sigla,Cidade,UF,Tipo
 2021,1,1,43,170,19,UFMG-MC,Belo Horizonte,MG,Pública
 2022,1,1,34,158,19,UFMG-MC,Belo Horizonte,MG,Pública
 2023,1,1,38,170,25,UFMG-MC,Belo Horizonte,MG,Pública
+2024,1,1,42,166,28,UFMG-MC,Belo Horizonte,MG,Pública
 2010,1,4,688,2809,463,PUC-MG-BH,Belo Horizonte,MG,Privada
 2011,1,4,606,2863,444,PUC-MG-BH,Belo Horizonte,MG,Privada
 2012,1,4,753,2753,411,PUC-MG-BH,Belo Horizonte,MG,Privada
@@ -233,6 +245,7 @@ Ano,IES,Cursos,Ingresso,Matrículas,Concluintes,Sigla,Cidade,UF,Tipo
 2021,1,4,407,1584,294,PUC-MG-BH,Belo Horizonte,MG,Privada
 2022,1,4,505,1484,246,PUC-MG-BH,Belo Horizonte,MG,Privada
 2023,1,4,466,1423,244,PUC-MG-BH,Belo Horizonte,MG,Privada
+2024,1,4,400,1343,241,PUC-MG-BH,Belo Horizonte,MG,Privada
 2010,1,1,57,335,66,EBAPE,Rio de Janeiro,RJ,Privada
 2011,1,1,43,273,69,EBAPE,Rio de Janeiro,RJ,Privada
 2012,1,1,69,238,50,EBAPE,Rio de Janeiro,RJ,Privada
