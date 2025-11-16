@@ -67,15 +67,15 @@ FONT_FAMILY = "Arial"
 
 # cores finais dos grupos
 COLOR_CAT = {
-    "Público": PALETTE["azuis"][0],
-    "Privada c/ fins": PALETTE["azuis"][2],
-    "Privada s/ fins": PALETTE["verde_claro"],  # mais discriminação
-    "Outro": PALETTE["cinzas"][1],              # cinza
+    "Public": PALETTE["azuis"][0],
+    "Private for profit": PALETTE["azuis"][2],
+    "Private non-profit": PALETTE["verde_claro"],  # mais discriminação
+    "Other": PALETTE["cinzas"][1],              # cinza
 }
 COLOR_MOD = {
-    "Presencial": PALETTE["azuis"][1],
-    "EAD": PALETTE["azuis"][3],
-    "Outro": PALETTE["cinzas"][2],
+    "In-person": PALETTE["azuis"][1],
+    "Online": PALETTE["azuis"][3],
+    "Other": PALETTE["cinzas"][2],
 }
 
 
@@ -161,40 +161,40 @@ def load_data() -> pd.DataFrame:
             try:
                 ival = int(val)
                 if ival in (1, 2, 3):
-                    return "Público"
+                    return "Public"
                 if ival == 4:
-                    return "Privada c/ fins"
+                    return "Private for profit"
                 if ival == 5:
-                    return "Privada s/ fins"
-                return "Outro"
+                    return "Private non-profit"
+                return "Other"
             except Exception:
-                return "Outro"
+                return "Other"
         # strings
         s = str(val).strip().lower()
         if s.isdigit():
             return map_cat(int(s))
         if "pública" in s:
-            return "Público"
+            return "Public"
         if "privada" in s and "com" in s:
-            return "Privada c/ fins"
+            return "Private for profit"
         if "privada" in s and "sem" in s:
-            return "Privada s/ fins"
-        return "Outro"
+            return "Private non-profit"
+        return "Other"
 
     df["CAT_MACRO"] = df["CAT_RAW"].map(map_cat).fillna("Outro")
 
     # Modalidade
     if "TP_MODALIDADE_ENSINO" in df.columns:
-        mod_map = {1: "Presencial", 2: "EAD", "1": "Presencial", "2": "EAD"}
-        df["MODALIDADE"] = df["TP_MODALIDADE_ENSINO"].map(mod_map).fillna("Outro")
+        mod_map = {1: "In-person", 2: "Online", "1": "In-person", "2": "Online"}
+        df["MODALIDADE"] = df["TP_MODALIDADE_ENSINO"].map(mod_map).fillna("Other")
     else:
-        df["MODALIDADE"] = "Outro"
+        df["MODALIDADE"] = "Other"
 
     # Escopo (BR vs RJ)
     def map_escopo(row):
         if _norm(row.get("NO_MUNICIPIO", "")) == "RIO DE JANEIRO" and str(row.get("SG_UF", "")).upper() == "RJ":
-            return "RJ"
-        return "BR"
+            return "Rio's Metropolitan Area"
+        return "Brasil"
 
     df["ESCOPO"] = df.apply(map_escopo, axis=1)
 
@@ -216,7 +216,7 @@ yr_min, yr_max = master["ANO"].min(), master["ANO"].max()
 # -----------------------------
 # SLICES / AGG
 # -----------------------------
-def slice_categoria(df: pd.DataFrame, escopo="BR"):
+def slice_categoria(df: pd.DataFrame, escopo="Brasil"):
     view = (
         df.loc[df["ESCOPO"] == escopo, ["ANO", "CAT_MACRO", "QT_ING", "QT_MAT", "QT_CONC"]]
         .groupby(["ANO", "CAT_MACRO"], observed=True, as_index=False)
@@ -226,7 +226,7 @@ def slice_categoria(df: pd.DataFrame, escopo="BR"):
     return view
 
 
-def slice_modalidade(df: pd.DataFrame, escopo="BR"):
+def slice_modalidade(df: pd.DataFrame, escopo="Brasil"):
     view = (
         df.loc[df["ESCOPO"] == escopo, ["ANO", "MODALIDADE", "QT_ING", "QT_MAT", "QT_CONC"]]
         .groupby(["ANO", "MODALIDADE"], observed=True, as_index=False)
@@ -294,16 +294,16 @@ def line_with_labels(df, x, y, series, color_map, title, subtitle, yaxis_title, 
 def stacked_modalidade(df_mod, metric_col, title, subtitle, pct=False):
     pivot = df_mod.pivot(index="ANO", columns="MODALIDADE", values=metric_col).fillna(0).sort_index()
     # garantir colunas na ordem
-    for col in ["Presencial", "EAD"]:
+    for col in ["In-person", "Online"]:
         if col not in pivot.columns:
             pivot[col] = 0
-    pivot = pivot[["Presencial", "EAD"]]
+    pivot = pivot[["In-person", "Online"]]
 
     if pct:
         totals = pivot.sum(axis=1).replace(0, np.nan)
         ydata = (pivot.div(totals, axis=0) * 100).fillna(0)
         text_fmt = ydata.round(1).astype(str) + "%"
-        yaxis_title = "Participação (%)"
+        yaxis_title = "Market share (%)"
         hover_y = "%{y:.1f}%"
         text_inside = True
     else:
@@ -314,7 +314,7 @@ def stacked_modalidade(df_mod, metric_col, title, subtitle, pct=False):
         text_inside = False
 
     fig = go.Figure()
-    for mod in ["Presencial", "EAD"]:
+    for mod in ["In-person", "Online"]:
         fig.add_trace(
             go.Bar(
                 x=ydata.index,
@@ -353,26 +353,25 @@ def stacked_modalidade(df_mod, metric_col, title, subtitle, pct=False):
 # -----------------------------
 st.markdown(
     f"<h2 style='color:{TITLE_COLOR};font-family:{FONT_FAMILY};font-weight:700;margin-bottom:0'>"
-    f"Administração (Bacharelado) — INEP {yr_min}–{yr_max}</h2>"
+    f"BSc in Administration — INEP {yr_min}–{yr_max}</h2>"
     f"<p style='color:{SUBTITLE_COLOR};font-family:{FONT_FAMILY};margin-top:2px'>"
-    f"Comparativos: Público vs Privado e Presencial vs EAD • Brasil e RJ • "
-    f"Métricas: Ingressantes, Matrículas, Concluintes</p>",
+    f"Comparison: Public vs Private & In-person vs Online • Brasil and Rio's metropolitan area • "
+    f"Metrics: Incoming Students, Registered students (stock), Graduating Students</p>",
     unsafe_allow_html=True,
 )
 
 with st.sidebar:
-    st.subheader("Parâmetros")
-    anos_sel = st.slider("Período", min_value=int(yr_min), max_value=int(yr_max),
+    st.subheader("Parameters")
+    anos_sel = st.slider("Period", min_value=int(yr_min), max_value=int(yr_max),
                          value=(int(yr_min), int(yr_max)), step=1)
-    metrica = st.radio("Métrica", ["Matrículas", "Concluintes", "Ingressantes"], index=0, horizontal=True)
-    view = st.radio("Visualização", ["Por categoria administrativa", "Por modalidade"], index=0)
-    empilhado_pct = st.checkbox("Market Share 100% (participação)", value=True)
-    show_labels = st.checkbox("Mostrar rótulos nos pontos (linhas)", value=True)
-    mostrar_tabelas = st.checkbox("Mostrar tabelas resumo", value=False)
-    st.caption("Dica: senha via `st.secrets['password']` ou variável de ambiente `APP_PASSWORD`.")
+    metrica = st.radio("Metric", ["Registered students", "Graduating students", "Incoming students"], index=0, horizontal=True)
+    view = st.radio("Visualization", ["By strategic group", "By form of delivery"], index=0)
+    empilhado_pct = st.checkbox("Market Share 100%", value=True)
+    show_labels = st.checkbox("Show labels", value=True)
+    mostrar_tabelas = st.checkbox("Show data table", value=False)
 
 yr0, yr1 = anos_sel
-metric_map = {"Matrículas": "QT_MAT", "Concluintes": "QT_CONC", "Ingressantes": "QT_ING"}
+metric_map = {"Registered students": "QT_MAT", "Graduating students": "QT_CONC", "Incoming students": "QT_ING"}
 metric_col = metric_map[metrica]
 m = master[(master["ANO"] >= yr0) & (master["ANO"] <= yr1)].copy()
 
@@ -383,13 +382,13 @@ m = master[(master["ANO"] >= yr0) & (master["ANO"] <= yr1)].copy()
 def render_scope(scope_label: str, escopo_df: pd.DataFrame):
     col1, col2 = st.columns([2, 1], gap="large")
 
-    if view == "Por categoria administrativa":
+    if view == "By strategic group":
         df_cat = slice_categoria(escopo_df, escopo=scope_label)
         fig = line_with_labels(
             df_cat, x="ANO", y=metric_col, series="CAT_MACRO",
             color_map=COLOR_CAT,
-            title=f"{metrica} por Categoria Administrativa",
-            subtitle=f"Administração (Bacharelado) • {scope_label} • {yr0}–{yr1}",
+            title=f"{metrica} By Strategic Group",
+            subtitle=f"BSc in Administration • {scope_label} • {yr0}–{yr1}",
             yaxis_title=metrica, show_labels=show_labels,
         )
         col1.plotly_chart(fig, use_container_width=True)
@@ -400,8 +399,8 @@ def render_scope(scope_label: str, escopo_df: pd.DataFrame):
         fig = line_with_labels(
             df_mod, x="ANO", y=metric_col, series="MODALIDADE",
             color_map=COLOR_MOD,
-            title=f"{metrica} por Modalidade",
-            subtitle=f"Administração (Bacharelado) • {scope_label} • {yr0}–{yr1}",
+            title=f"{metrica} by Form of Delivery",
+            subtitle=f"BSc in Administration • {scope_label} • {yr0}–{yr1}",
             yaxis_title=metrica, show_labels=show_labels,
         )
         col1.plotly_chart(fig, use_container_width=True)
@@ -411,16 +410,16 @@ def render_scope(scope_label: str, escopo_df: pd.DataFrame):
         tb["Δ absoluto"] = tb["Δ absoluto"].round(0).astype(int)
         tb["CAGR (%)"] = (tb["CAGR"] * 100).round(2)
         tb_display = tb[["GRUPO", "base", "end", "Δ absoluto", "CAGR (%)"]]
-        col2.subheader("Crescimento no período")
+        col2.subheader("Growth in the period")
         col2.dataframe(tb_display, use_container_width=True, hide_index=True)
 
     # Stacked / Market share
-    st.markdown("### Market share por Modalidade")
+    st.markdown("### Market share by form of delivery")
     df_mod2 = slice_modalidade(escopo_df, escopo=scope_label)
     st.plotly_chart(
         stacked_modalidade(
             df_mod2, metric_col,
-            title=f"{metrica} por Modalidade (Empilhado)",
+            title=f"{metrica} by form of delivery (stacked)",
             subtitle=f"{scope_label} • {yr0}–{yr1}", pct=False,
         ),
         use_container_width=True,
@@ -429,15 +428,15 @@ def render_scope(scope_label: str, escopo_df: pd.DataFrame):
         st.plotly_chart(
             stacked_modalidade(
                 df_mod2, metric_col,
-                title="Participação (%) por Modalidade (100%)",
+                title="Market share by form of delivery (100%)",
                 subtitle=f"{scope_label} • {yr0}–{yr1}", pct=True,
             ),
             use_container_width=True,
         )
 
 
-tab_br, tab_rj = st.tabs(["🇧🇷 Brasil", "🏷️ RJ"])
+tab_br, tab_rj = st.tabs(["Brasil", "Rio's Metropolitan Area"])
 with tab_br:
-    render_scope("BR", m)
+    render_scope("Brasil", m)
 with tab_rj:
-    render_scope("RJ", m)
+    render_scope("Rio's Metropolitan Area", m)
