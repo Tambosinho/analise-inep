@@ -25,7 +25,7 @@ EBAPE_LW, EAESP_LW, OTHERS_LW = 3.2, 2.6, 1.3
 MARKER_SIZE = 6
 
 # “espaços” análogos aos knobs anteriores (efeito aproximado em Plotly)
-TITLE_Y = 0.97          # sobe/baixa bloco de título+subtítulo
+TITLE_Y = 0.96          # sobe/baixa bloco de título+subtítulo
 LEGEND_Y = -0.16        # legenda “colada” abaixo do gráfico (negativo = fora do plot)
 TITLE_SIZE = 20
 SUBTITLE_SIZE = 14
@@ -142,7 +142,7 @@ df = load_dataset()
 # FIGURA PLOTLY (mantendo o design)
 # ===========================
 def fig_competicao_plotly(df: pd.DataFrame, uf: str, metric: str) -> go.Figure:
-    title_map  = {"Ingresso":"INGRESSO", "Matriculas":"MATRICULADOS", "Concluintes":"CONCLUINTES"}
+    title_map  = {"Ingresso":"Incoming Students", "Matriculas":"Registered Students (stock)", "Concluintes":"Graduating Students"}
     assert metric in title_map
 
     # Subconjunto + EBAPE em todos + EAESP só em SP
@@ -213,7 +213,7 @@ def fig_competicao_plotly(df: pd.DataFrame, uf: str, metric: str) -> go.Figure:
 
     # --- Layout: Título + Subtítulo (alinhados à esquerda) + legenda “colada”
     title_html = (
-        f"<b style='color:{BLUES['navy']}'>COMPETIÇÃO ENTRE ESCOLAS - {uf}</b>"
+        f"<b style='color:{BLUES['navy']}'>COMPETITION AMONG INSTITUTIONS - {uf}</b>"
         f"<br><span style='color:{BLUES['medium']}; font-weight: normal;'>{title_map[metric]}</span>"
     )
     fig.update_layout(
@@ -236,7 +236,7 @@ def fig_marketshare_100_plotly(df: pd.DataFrame, uf: str, metric: str) -> go.Fig
     Market share das IES por ano (100% stacked), incluindo EBAPE em todos os UFs
     e EAESP apenas em SP, mantendo as mesmas cores e ordem visual.
     """
-    title_map  = {"Ingresso":"INGRESSO", "Matriculas":"MATRICULADOS", "Concluintes":"CONCLUINTES"}
+    title_map  = {"Ingresso":"Incoming Students", "Matriculas":"Registered Students (stock)", "Concluintes":"Graduating Students"}
     assert metric in title_map
 
     # Subconjunto por UF + EBAPE (sempre) + EAESP (só em SP)
@@ -333,7 +333,7 @@ def _load_raw_with_tipo_sigla() -> pd.DataFrame:
     return df_raw
 
 def fig_rj_tipo_ebape_plotly(metric: str) -> go.Figure:
-    title_map = {"Ingresso":"INGRESSO", "Matriculas":"MATRICULADOS", "Concluintes":"CONCLUINTES"}
+    title_map = {"Ingresso":"Incoming Students", "Matriculas":"Registered Students (stock)", "Concluintes":"Graduating Students"}
     assert metric in title_map
 
     d = _load_raw_with_tipo_sigla()
@@ -353,8 +353,8 @@ def fig_rj_tipo_ebape_plotly(metric: str) -> go.Figure:
     mask_priv = (~ebape_mask) & d["Tipo_norm"].str.startswith("privad")
 
     by_year = {
-        "Pública": d.loc[mask_pub,  ["Ano", metric]].dropna().groupby("Ano", as_index=False)[metric].sum(),
-        "Privada": d.loc[mask_priv, ["Ano", metric]].dropna().groupby("Ano", as_index=False)[metric].sum(),
+        "Public": d.loc[mask_pub,  ["Ano", metric]].dropna().groupby("Ano", as_index=False)[metric].sum(),
+        "Private": d.loc[mask_priv, ["Ano", metric]].dropna().groupby("Ano", as_index=False)[metric].sum(),
         "EBAPE":   d.loc[ebape_mask,["Ano", metric]].dropna().groupby("Ano", as_index=False)[metric].sum(),
     }
 
@@ -362,13 +362,13 @@ def fig_rj_tipo_ebape_plotly(metric: str) -> go.Figure:
     if not anos: 
         return go.Figure()
 
-    color_map = {"Pública": GRAYS["mid"], "Privada": BLUES["navy"], "EBAPE": BLUES["sky"]}
-    lw_map    = {"Pública": OTHERS_LW,   "Privada": OTHERS_LW,     "EBAPE": EBAPE_LW}
+    color_map = {"Public": GRAYS["mid"], "Private": BLUES["navy"], "EBAPE": BLUES["sky"]}
+    lw_map    = {"Public": OTHERS_LW,   "Private": OTHERS_LW,     "EBAPE": EBAPE_LW}
 
     fig = go.Figure()
 
     # Rótulos de texto (atrás das linhas)
-    for label in ["Pública", "Privada", "EBAPE"]:
+    for label in ["Public", "Private", "EBAPE"]:
         dfy = by_year[label]
         if dfy.empty: 
             continue
@@ -384,7 +384,7 @@ def fig_rj_tipo_ebape_plotly(metric: str) -> go.Figure:
         )
 
     # Linhas + marcadores
-    for label in ["Pública", "Privada", "EBAPE"]:
+    for label in ["Public", "Private", "EBAPE"]:
         dfy = by_year[label]
         if dfy.empty: 
             continue
@@ -400,8 +400,8 @@ def fig_rj_tipo_ebape_plotly(metric: str) -> go.Figure:
         )
 
     title_html = (
-        f"<b style='color:{BLUES['navy']}'>TIPO DE IES — RJ</b>"
-        f"<br><span style='color:{BLUES['medium']}; font-weight: normal;'>{title_map[metric]} — Públicas vs Privadas vs EBAPE</span>"
+        f"<b style='color:{BLUES['navy']}'>Type of Institution — Rio's Metropolitan Area</b>"
+        f"<br><span style='color:{BLUES['medium']}; font-weight: normal;'>{title_map[metric]} — Public vs Private vs EBAPE</span>"
     )
     fig.update_layout(
         title=dict(text=title_html, font=dict(family=FONT_FAMILY, size=TITLE_SIZE), x=0, xanchor="left", y=TITLE_Y),
