@@ -119,22 +119,22 @@ yr_min, yr_max = int(master["Ano"].min()), int(master["Ano"].max())
 # ── UI (globais) ──────────────────────────────────────────────────────────────
 st.markdown(
     f"<h2 style='color:{TITLE_COLOR};font-family:{FONT_FAMILY};font-weight:700;margin-bottom:0'>"
-    f"Ensino Tecnológico — INEP {yr_min}–{yr_max}</h2>"
+    f"Analysis of Technological (associate degree) — INEP {yr_min}–{yr_max}</h2>"
     f"<p style='color:{SUBTITLE_COLOR};font-family:{FONT_FAMILY};margin-top:2px'>"
-    f"Comparativos por Modalidade (Presencial × EAD) • Séries: Rio de Janeiro, Brasil e IDT-FGV • "
-    f"Métricas: Ingressantes, Matrículas, Concluintes</p>",
+    f"Comparisons by Type of Delivery (In-person x Online) • Series: Rio's Metropolitan Area, Brasil e IDT-FGV • "
+    f"Metrics: Incoming Students, Registered Students (stock), Graduating Students</p>",
     unsafe_allow_html=True,
 )
 
 with st.sidebar:
-    st.subheader("Parâmetros")
-    anos_sel = st.slider("Período", min_value=yr_min, max_value=yr_max,
+    st.subheader("Parameters")
+    anos_sel = st.slider("Period", min_value=yr_min, max_value=yr_max,
                          value=(yr_min, yr_max), step=1)
-    metrica = st.radio("Métrica", ["Matrículas", "Concluintes", "Ingressantes"], index=0, horizontal=False)
-    show_labels = st.checkbox("Mostrar rótulos nas barras/linhas", value=True)
+    metrica = st.radio("Metric", ["Registered students (stock)", "Graduating Students", "Incoming Students"], index=0, horizontal=False)
+    show_labels = st.checkbox("Show labels", value=True)
 
 yr0, yr1 = anos_sel
-metric_map = {"Matrículas": "Matrículas", "Concluintes": "Concluintes", "Ingressantes": "Ingressantes"}
+metric_map = {"Registered students (stock)": "Matrículas", "Graduating Students": "Concluintes", "Incoming Students": "Ingressantes"}
 metric_col = metric_map[metrica]
 m = master[(master["Ano"] >= yr0) & (master["Ano"] <= yr1)].copy()
 
@@ -145,6 +145,7 @@ def stacked_by_scope(df, scope_label, title_suffix):
         .groupby(["Ano", "MOD2"], as_index=False, observed=True)
         .sum(min_count=1)
     )
+
     pivot = df_sc.pivot(index="Ano", columns="MOD2", values=metric_col).fillna(0).sort_index()
     for col in ["Presencial", "EAD"]:
         if col not in pivot.columns:
@@ -152,24 +153,34 @@ def stacked_by_scope(df, scope_label, title_suffix):
     pivot = pivot["Presencial"].to_frame().join(pivot["EAD"].to_frame(), how="outer").fillna(0)
 
     fig = go.Figure()
+    label_map = {
+        "Presencial": "In-person",
+        "EAD": "Online",
+    }
+
     for mod in ["Presencial", "EAD"]:
         fig.add_trace(
             go.Bar(
                 x=pivot.index,
                 y=pivot[mod],
-                name=mod,
+                # 🟢 Legend label:
+                name=label_map.get(mod, mod),
                 marker_color=COLOR_MOD.get(mod, PALETTE["azuis"][2]),
                 text=[format_short(v) if show_labels else "" for v in pivot[mod]],
                 textposition="inside" if show_labels else "none",
-                hovertemplate=f"Modalidade: {mod}<br>Ano: "+"%{x}" + "<br>Valor: %{y:,.0f}<extra></extra>",
+                # 🟢 Hover text in English too (optional):
+                hovertemplate=(
+                    f"Form of delivery: {label_map.get(mod, mod)}"
+                    + "<br>Year: %{x}"
+                    + "<br>Value: %{y:,.0f}<extra></extra>"
+                ),
             )
         )
+
     fig.update_layout(
         barmode="stack",
         title=dict(
-            text=f"<b style='color:{TITLE_COLOR}'>{metrica} em {yr0}–{yr1}</b>"
-                 f"<br><span style='color:{SUBTITLE_COLOR}; font-weight: normal;'>"
-                 f"Totais em {title_suffix} (empilhado)</span>",
+            text=f"<b style='color:{TITLE_COLOR}'>{metrica} in {yr0}–{yr1}</b>",
             font=dict(family=FONT_FAMILY, size=20),
             x=0, xanchor="left", y=0.90
         ),
@@ -223,7 +234,7 @@ def line_two_series(df, label_a, label_b, title_suffix):
         )
     fig.update_layout(
         title=dict(
-            text=f"<b style='color:{TITLE_COLOR}'>{metrica} — comparação</b>"
+            text=f"<b style='color:{TITLE_COLOR}'>{metrica}</b>"
                  f"<br><span style='color:{SUBTITLE_COLOR}; font-weight: normal;'>"
                  f"{title_suffix} • {yr0}–{yr1}</span>",
             font=dict(family=FONT_FAMILY, size=20),
@@ -243,11 +254,11 @@ def line_two_series(df, label_a, label_b, title_suffix):
 tab_rj, tab_br = st.tabs(["🏷️ Rio de Janeiro", "🇧🇷 Brasil"])
 
 with tab_rj:
-    st.markdown("### Rio de Janeiro — Presencial × EAD (empilhado)")
+    st.markdown("### Rio de Janeiro — In-person × Online")
     st.plotly_chart(stacked_by_scope(m, "Rio de Janeiro", "Rio de Janeiro"), use_container_width=True)
 
     # Linha: IDT‑FGV vs RJ
-    st.markdown("### Séries temporais — IDT‑FGV × Rio de Janeiro (total)")
+    st.markdown("### Time series — IDT‑FGV × Rio de Janeiro")
     series = []
     rj_total = (
         m.loc[m["Escopo"] == "Rio de Janeiro", ["Ano", metric_col]]
@@ -255,7 +266,7 @@ with tab_rj:
         .sum(min_count=1)
         .rename(columns={metric_col: "valor"})
     )
-    rj_total["serie"] = "Rio de Janeiro (Total)"
+    rj_total["serie"] = "Rio's Metropolitan Area"
     series.append(rj_total)
 
     idt = (
@@ -288,9 +299,9 @@ with tab_rj:
         )
     fig_line_rj.update_layout(
         title=dict(
-            text=f"<b style='color:{TITLE_COLOR}'>{metrica} — comparação</b>"
+            text=f"<b style='color:{TITLE_COLOR}'>{metrica}</b>"
                  f"<br><span style='color:{SUBTITLE_COLOR}; font-weight: normal;'>"
-                 f"Somas anuais: IDT‑FGV vs Rio de Janeiro • {yr0}–{yr1}</span>",
+                 f"IDT‑FGV vs Rio's Metropolitan Area • {yr0}–{yr1}</span>",
             font=dict(family=FONT_FAMILY, size=20),
             x=0, xanchor="left", y=0.90,
         ),
@@ -305,7 +316,7 @@ with tab_rj:
     st.plotly_chart(fig_line_rj, use_container_width=True)
 
     # 100% stacked bar — Market share da IDT‑FGV no RJ
-    st.markdown("### Market share — IDT‑FGV no RJ (100%)")
+    st.markdown("### Market share — IDT‑FGV in Rio's Metropolitan Area (100%)")
     rj_tot = (
         m.loc[m["Escopo"] == "Rio de Janeiro", ["Ano", metric_col]]
          .groupby("Ano", as_index=False).sum(min_count=1)
@@ -328,11 +339,11 @@ with tab_rj:
         go.Bar(
             x=share["Ano"],
             y=pct_out,
-            name="Demais RJ",
+            name="Rio's Metropolitan Area",
             marker_color=PALETTE["cinzas"][1],
             text=[f"{v:.1f}%" if show_labels else "" for v in pct_out],
             textposition="inside" if show_labels else "none",
-            hovertemplate="Ano: %{x}<br>Demais RJ: %{y:.1f}%<br>Absoluto: %{customdata:,}<extra></extra>",
+            hovertemplate="Ano: %{x}<br>Rio's Metropolitan Area: %{y:.1f}%<br>Absoluto: %{customdata:,}<extra></extra>",
             customdata=share["OUTROS_RJ"],
         )
     )
@@ -351,9 +362,9 @@ with tab_rj:
     fig_share.update_layout(
         barmode="stack",
         title=dict(
-            text=f"<b style='color:{TITLE_COLOR}'>Participação (%) — IDT‑FGV no RJ</b>"
+            text=f"<b style='color:{TITLE_COLOR}'>Market Share (%) — IDT‑FGV in Rio's Metropolitan Area</b>"
                  f"<br><span style='color:{SUBTITLE_COLOR}; font-weight: normal;'>"
-                 f"Base: totais anuais do Rio de Janeiro • {yr0}–{yr1}</span>",
+                 f"{yr0}–{yr1}</span>",
             font=dict(family=FONT_FAMILY, size=20),
             x=0, xanchor="left", y=0.90
         ),
@@ -364,18 +375,18 @@ with tab_rj:
     )
     fig_share.update_xaxes(showgrid=False, zeroline=False, linecolor=AXIS_COLOR, tickmode="linear")
     fig_share.update_yaxes(showgrid=True, gridcolor=GRID_COLOR, zeroline=False,
-                           linecolor=AXIS_COLOR, title="Participação (%)",
+                           linecolor=AXIS_COLOR, title="Market Share (%)",
                            tickformat=".0f", range=[0, 100])
     st.plotly_chart(fig_share, use_container_width=True)
 
 
 with tab_br:
-    st.markdown("### Brasil — Presencial × EAD (empilhado)")
+    st.markdown("### Brasil — In-person × Online")
     st.plotly_chart(stacked_by_scope(m, "Brasil", "Brasil"), use_container_width=True)
 
-    st.markdown("### Séries temporais — Brasil × Rio de Janeiro (total)")
+    st.markdown("### Time series — Brasil × Rio's Metropolitan Area")
     st.plotly_chart(
-        line_two_series(m, "Brasil", "Rio de Janeiro", "Somas anuais: Brasil vs Rio de Janeiro"),
+        line_two_series(m, "Brasil", "Rio de Janeiro", "Brasil vs Rio de Janeiro"),
         use_container_width=True,
     )
 
@@ -403,11 +414,11 @@ with tab_br:
         go.Bar(
             x=share_br["Ano"],
             y=pct_out_br,
-            name="Demais Brasil",
+            name="Brasil",
             marker_color=PALETTE["cinzas"][1],
             text=[f"{v:.1f}%" if show_labels else "" for v in pct_out_br],
             textposition="inside" if show_labels else "none",
-            hovertemplate="Ano: %{x}<br>Demais Brasil: %{y:.1f}%<br>Absoluto: %{customdata:,}<extra></extra>",
+            hovertemplate="Ano: %{x}<br>Brasil: %{y:.1f}%<br>Absoluto: %{customdata:,}<extra></extra>",
             customdata=share_br["DEMAIS_BR"],
         )
     )
@@ -426,9 +437,9 @@ with tab_br:
     fig_share_br.update_layout(
         barmode="stack",
         title=dict(
-            text=f"<b style='color:{TITLE_COLOR}'>Participação (%) — RJ no Brasil</b>"
+            text=f"<b style='color:{TITLE_COLOR}'>Market Share — RJ in Brasil</b>"
                  f"<br><span style='color:{SUBTITLE_COLOR}; font-weight: normal;'>"
-                 f"Base: totais anuais do Brasil • {yr0}–{yr1}</span>",
+                 f"{yr0}–{yr1}</span>",
             font=dict(family=FONT_FAMILY, size=20),
             x=0, xanchor="left", y=0.90
         ),
@@ -439,12 +450,12 @@ with tab_br:
     )
     fig_share_br.update_xaxes(showgrid=False, zeroline=False, linecolor=AXIS_COLOR, tickmode="linear")
     fig_share_br.update_yaxes(showgrid=True, gridcolor=GRID_COLOR, zeroline=False,
-                              linecolor=AXIS_COLOR, title="Participação (%)",
+                              linecolor=AXIS_COLOR, title="Market Share (%)",
                               tickformat=".0f", range=[0, 100])
     st.plotly_chart(fig_share_br, use_container_width=True)
 
     # Treemap — IES (UF → IES) — com toggle de métrica e slider de ano (2022–2024)
-    st.markdown("### Treemap — IES (UF → IES)")
+    st.markdown("### Treemap — States and Institutions")
     ies = load_ies_agg()
     if ies.empty:
         st.info("Arquivo 'dados-agrupados-tecnologos-por-faculdade-ano.csv' não encontrado — treemap indisponível.")

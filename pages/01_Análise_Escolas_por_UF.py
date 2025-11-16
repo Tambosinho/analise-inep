@@ -421,7 +421,7 @@ def fig_rj_tipo_ebape_plotly(metric: str) -> go.Figure:
 # ===========================
 # UI
 # ===========================
-st.title("Análise — Escolas por UF (interativo)")
+st.title("Competition Analysis — Institutions by State")
 tabs = st.tabs(["SP", "RJ", "MG"])
 for tab, UF in zip(tabs, ["SP", "RJ", "MG"]):
     with tab:
